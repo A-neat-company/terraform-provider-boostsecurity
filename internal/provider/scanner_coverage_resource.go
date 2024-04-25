@@ -62,8 +62,9 @@ func (r *scannerCoverageResource) Schema(_ context.Context, _ resource.SchemaReq
 						Optional:    true,
 					},
 					"id": schema.StringAttribute{
-						Description: "The ID of the resource.",
-						Computed:    true,
+						Description:         "The ID of the resource.",
+						MarkdownDescription: "The ID of the resource. \n The ID is determined based on the provider collection and resource.",
+						Computed:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
@@ -74,12 +75,14 @@ func (r *scannerCoverageResource) Schema(_ context.Context, _ resource.SchemaReq
 						Required:    true,
 					},
 					"policy": schema.StringAttribute{
-						Description: "The policy of the asset.",
-						Optional:    true,
+						Description:         "The policy for the asset.",
+						MarkdownDescription: "The policy for the asset. \n This field is different from the `assigned_policy` as terraform behaviour for optional and computed field is not detecting the removal of the policy.",
+						Optional:            true,
 					},
 					"assigned_policy": schema.StringAttribute{
-						Description: "The policy of the asset.",
-						Computed:    true,
+						Description:         "The policy assigned to the asset.",
+						MarkdownDescription: "The policy assigned to the asset. \n This might differ from the policy field as a resource might not be allow to change policy.",
+						Computed:            true,
 					},
 				},
 			},
