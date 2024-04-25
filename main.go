@@ -6,11 +6,9 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
-
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-
-	"terraform-provider-hashicups/internal/provider"
+	"log"
+	"terraform-provider-boostsecurity/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -21,7 +19,7 @@ import (
 
 // Run the docs generation tool, check its repository for more information on how it works and how docs
 // can be customized.
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate -provider-name hashicups
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate -provider-name boostsecurity
 
 var (
 	// these will be set by the goreleaser configuration
@@ -44,7 +42,7 @@ func main() {
 		// provider address is used in these tutorials in conjunction with a
 		// specific Terraform CLI configuration for manual development testing
 		// of this provider.
-		Address: "hashicorp.com/edu/hashicups",
+		Address: "Dyc0de/test/boostsecurity",
 		Debug:   debug,
 	}
 
@@ -53,4 +51,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	//client := boostsecurity.NewClient("https://api.dev.boostsec.io/asset-management/graphql", "5QEhAf9bDvdYy9Z9amU-N-ru0WIeGI1MR-CifoKS49c")
+	//posture, err := client.GetPosture(context.Background())
+	//spew.Dump(err)
+	//spew.Dump(posture.Providers[3].Organizations[0])
 }

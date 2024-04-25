@@ -1,0 +1,480 @@
+fragment FilterData on FilterCount {
+  value
+  count
+}
+fragment ConnectionData on Connection {
+  totalCount
+  pageInfo {
+    hasNextPage
+    hasPreviousPage
+    startCursor
+    endCursor
+  }
+}
+fragment PolicyData on HasPolicy {
+  policy {
+    policyId
+    name
+    source
+    assignment
+  }
+}
+fragment ScannerData on HasScanners {
+  securityCoverage {
+    category
+    state
+    activity
+  }
+  scanners {
+    scannerId
+    name
+    categories
+    state
+    activity
+    provisioningMethod
+    error {
+      message
+    }
+    ruleset {
+      id
+      name
+    }
+  }
+}
+
+query SecurityPosture {
+  securityPosture {
+    filters {
+      resourceProvisioningStatus {
+        ...FilterData
+      }
+      collection {
+        ...FilterData
+        display {
+          name
+          provider
+        }
+      }
+      missingCoverage {
+        ...FilterData
+      }
+      resourceAttribute {
+        ...FilterData
+      }
+      policyType {
+        ...FilterData
+      }
+      policy {
+        ...FilterData
+        display {
+          name
+        }
+      }
+      provisionedAnalyzer {
+        ...FilterData
+        display {
+          analyzerId
+          analyzerName
+          rulesetName
+        }
+      }
+    }
+    account {
+      ...PolicyData
+      assetType
+    }
+    providers {
+      ...ConnectionData
+      edges {
+        cursor
+        node {
+          providerId
+          name
+          stats {
+            totalNeedAttention
+            totalResources
+          }
+          collections {
+            ...ConnectionData
+            edges {
+              cursor
+              node {
+                collectionId
+              }
+            }
+          }
+          autoAssignment {
+            id
+            enabled
+          }
+        }
+      }
+    }
+  }
+}
+
+query SecurityPostureOnlyAccount {
+  securityPosture {
+    account {
+      ...PolicyData
+      assetType
+    }
+  }
+}
+
+query FilteredSecurityPosture($filters: Filters) {
+  securityPosture(filters: $filters) {
+    filters {
+      resourceProvisioningStatus {
+        ...FilterData
+      }
+      collection {
+        ...FilterData
+        display {
+          name
+          provider
+        }
+      }
+      missingCoverage {
+        ...FilterData
+      }
+      resourceAttribute {
+        ...FilterData
+      }
+      policyType {
+        ...FilterData
+      }
+      policy {
+        ...FilterData
+        display {
+          name
+        }
+      }
+      provisionedAnalyzer {
+        ...FilterData
+        display {
+          analyzerId
+          analyzerName
+          rulesetName
+        }
+      }
+    }
+    providers {
+      edges {
+        node {
+          providerId
+          stats {
+            totalResources
+          }
+          collections {
+            edges {
+              node {
+                collectionId
+                resources {
+                  edges {
+                    node {
+                      resourceId
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+query Provider($providerId: String!) {
+  provider(providerId: $providerId) {
+    providerId
+    name
+    stats {
+      totalNeedAttention
+      totalResources
+    }
+    autoAssignment {
+      id
+      enabled
+    }
+  }
+}
+
+
+query ProviderCollections(
+  $providerId: String!
+  $first: Int
+) {
+  provider(providerId: $providerId) {
+    collections(
+      first: $first
+    ) {
+      ...ConnectionData
+      edges {
+        cursor
+        node {
+          collectionId
+          assetType
+          name
+          baseUrl
+          webUrl
+          stats {
+            totalNeedAttention
+          }
+          ...PolicyData
+          ...ScannerData
+          resources {
+            ...ConnectionData
+            edges {
+              cursor
+              node {
+                resourceId
+              }
+            }
+          }
+          iconUrl
+        }
+      }
+    }
+  }
+}
+
+query FilteredProvider(
+  $providerId: String!
+  $filters: Filters
+) {
+  provider(providerId: $providerId filters: $filters) {
+    stats {
+      totalResources
+    }
+    collections {
+      edges {
+        node {
+          collectionId
+          resources {
+            edges {
+              node {
+                resourceId
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query ProviderCollection(
+  $providerId: String!
+  $collectionId: String!
+  $first: Int
+) {
+  provider(providerId: $providerId) {
+    collection(collectionId: $collectionId) {
+      collectionId
+      resources(
+        first: $first
+      )
+      {
+        ...ConnectionData
+        edges {
+          cursor
+          node {
+            resourceId
+            assetType
+            name
+            ...PolicyData
+            ...ScannerData
+          }
+        }
+      }
+    }
+  }
+}
+
+# Query with precise fields to assert external dependencies
+query ExternalDataValidation {
+  securityPosture {
+    providers {
+      edges {
+        node {
+          providerId
+          collections {
+            edges {
+              node {
+                collectionId
+                name
+                ...ScannerData
+                ...PolicyData
+                resources {
+                  edges {
+                    node {
+                      resourceId
+                      ...ScannerData
+                      ...PolicyData
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query ProvisionPlan($assetSelections: [AssetSelection!]!) {
+  provisionPlan(assetSelections: $assetSelections) {
+    totalSelectedCollections
+    totalSelectedResources
+    scanners {
+      scannerId
+      scannerName
+      categories
+      totalApplicableCollections
+      totalApplicableResources
+      availability
+      targets
+      rulesetRequired
+      rulesets { id name }
+    }
+  }
+}
+
+fragment scannerConfigData on ScannerConfig {
+  id
+  inUse
+  globalConfigs { id value }
+  rulesets {
+    id
+    name
+    inUse
+    configs  { id value }
+  }
+}
+
+query ScannerConfigs {
+  scannerConfigs {
+    configs {
+      ...scannerConfigData
+    }
+  }
+}
+
+query AccountAutoAssignment {
+  accountAutoAssignment {
+    analyzers {
+      id
+    }
+  }
+}
+
+query PolicyAssignmentSummary {
+  policyAssignmentSummary {
+    policies {
+      id
+      totalAccounts
+      totalCollections
+      totalResources
+    }
+  }
+}
+
+# @genqlient(for: "PolicyOperation.policyId", omitempty: true)
+mutation ApplyProvisionPlan(
+  $assetSelections: [AssetSelection!]!
+  $scanners: [ScannerOperation!]
+  # @genqlient(omitempty: true)
+  $policy: PolicyOperation
+  $removeDeprovisionedData: Boolean!
+) {
+  applyProvisionPlan(
+    assetSelections: $assetSelections
+    scanners: $scanners
+    policy: $policy
+    removeDeprovisionedData: $removeDeprovisionedData
+  ) {
+    __typename
+    ... on OperationError {
+      errorMessage
+      errorType
+    }
+  }
+}
+
+mutation UpdateScannerConfigs($update: ScannerConfigUpdate!) {
+  updateScannerConfigs(update: $update) {
+    __typename
+    ... on ScannerConfig {
+      ...scannerConfigData
+    }
+    ... on OperationError {
+      errorMessage
+      errorType
+    }
+  }
+}
+
+mutation RemoveScannerConfigs($analyzerId: String!) {
+  removeScannerConfigs(analyzerId: $analyzerId) {
+    __typename
+
+    ... on OperationError {
+      errorMessage
+      errorType
+    }
+  }
+}
+
+mutation TriggerScan(
+  $assetId: String!
+  $analyzerId: String!
+) {
+  triggerScan(
+    assetId: $assetId
+    analyzerId: $analyzerId
+  ) {
+    __typename
+    ... on OperationError {
+      errorMessage
+      errorType
+    }
+  }
+}
+
+mutation SetAccountAutoAssignment(
+  $analyzerIds: [String!]!
+) {
+  setAccountAutoAssignment(
+    analyzerIds: $analyzerIds
+  ) {
+    __typename
+    ... on OperationError {
+      errorMessage
+      errorType
+    }
+  }
+}
+
+mutation SetAnalyzerAutoAssignment(
+  $analyzerId: String!
+  $enabled: Boolean!
+) {
+  setAnalyzerAutoAssignment(
+    analyzerId: $analyzerId
+    enabled: $enabled
+  ) {
+    __typename
+    ... on AutoAssignment {
+      id
+      enabled
+    }
+    ... on OperationError {
+      errorMessage
+      errorType
+    }
+  }
+}

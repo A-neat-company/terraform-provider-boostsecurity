@@ -1,0 +1,412 @@
+type Account implements HasPolicy {
+  policy: Policy!
+  assetType: AssetType!
+}
+
+type AccountAutoAssignment {
+  analyzers: [AutoAssignmentAnalyzer!]!
+}
+
+enum Activity {
+  INACTIVE
+  PENDING
+  ACTIVE
+  ERROR
+}
+
+union AnalyzerAutoAssignmentResult = AutoAssignment | OperationError
+
+scalar UUID
+
+input AssetSelection {
+  selectionType: SelectionType!
+  assetIds: [String!] = null
+  assetType: AssetType = null
+}
+
+enum AssetType {
+  ACCOUNT
+  COLLECTION
+  RESOURCE
+}
+
+type AutoAssignment {
+  id: String!
+  enabled: Boolean!
+}
+
+type AutoAssignmentAnalyzer {
+  id: String!
+}
+
+type AvailableFilters {
+  missingCoverage: [BasicFilterCount!]!
+  resourceProvisioningStatus: [BasicFilterCount!]!
+  resourceAttribute: [BasicFilterCount!]!
+  collection: [CollectionFilterDisplayFilterCountWithDisplay!]!
+  policyType: [BasicFilterCount!]!
+  policy: [PolicyFilterDisplayFilterCountWithDisplay!]!
+  provisionedAnalyzer: [ProvisionedAnalyzerFilterCount!]!
+}
+
+type BasicFilterCount implements FilterCount {
+  value: String!
+  count: Int!
+}
+
+type Collection implements HasPolicy & HasScanners {
+  policy: Policy!
+  securityCoverage: [SecurityCategoryCoverage!]!
+  scanners: [Scanner!]!
+  assetType: AssetType!
+  webUrl: String
+  resources(first: Int = null, after: String = null, last: Int = null, before: String = null, page: Int = null): ResourcesConnection!
+  stats: CollectionStats!
+  iconUrl: String
+  collectionId: String!
+  name: String!
+  baseUrl: String
+}
+
+type CollectionEdge {
+  node: Collection!
+  cursor: String!
+}
+
+type CollectionFilterDisplay {
+  name: String!
+  provider: String!
+}
+
+type CollectionFilterDisplayFilterCountWithDisplay implements FilterCount {
+  value: String!
+  count: Int!
+  display: CollectionFilterDisplay!
+}
+
+type CollectionStats {
+  totalNeedAttention: Int!
+}
+
+type CollectionsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CollectionEdge!]!
+}
+
+interface Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+}
+
+interface FilterCount {
+  value: String!
+  count: Int!
+}
+
+input Filters {
+  collectionProvisioningStatuses: [String!] = null
+  resourceProvisioningStatuses: [String!] = null
+  collections: [String!] = null
+  missingCoverages: [String!] = null
+  resourceAttributes: [String!] = null
+  policyType: [String!] = null
+  policy: [String!] = null
+  provisionedAnalyzers: [String!] = null
+  search: String = null
+}
+
+interface HasPolicy {
+  policy: Policy!
+}
+
+interface HasScanners {
+  securityCoverage: [SecurityCategoryCoverage!]!
+  scanners: [Scanner!]!
+}
+
+type Mutation {
+  applyProvisionPlan(assetSelections: [AssetSelection!]!, scanners: [ScannerOperation!] = null, policy: PolicyOperation = null, removeDeprovisionedData: Boolean! = false): MutationResult!
+  triggerScan(assetId: String!, analyzerId: String!): MutationResult!
+  updateScannerConfigs(update: ScannerConfigUpdate!): UpdateScannerConfigsResult!
+  removeScannerConfigs(analyzerId: String!): MutationResult!
+  setAccountAutoAssignment(analyzerIds: [String!]!): MutationResult!
+  setAnalyzerAutoAssignment(analyzerId: String!, enabled: Boolean!): AnalyzerAutoAssignmentResult!
+}
+
+union MutationResult = OperationSuccess | OperationError
+
+enum OperationAction {
+  APPLY
+  CLEAR
+}
+
+type OperationError {
+  errorMessage: String!
+  errorType: String!
+}
+
+type OperationSuccess {
+  _: Boolean!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Policy {
+  assignment: PolicyAssignment!
+  policyId: String!
+  name: String!
+  source: PolicySource!
+}
+
+enum PolicyAssignment {
+  DIRECT
+  INHERITED
+}
+
+type PolicyAssignmentStats {
+  id: String!
+  totalAccounts: Int!
+  totalCollections: Int!
+  totalResources: Int!
+}
+
+type PolicyAssignmentSummary {
+  policies: [PolicyAssignmentStats!]!
+}
+
+type PolicyFilterDisplay {
+  name: String!
+}
+
+type PolicyFilterDisplayFilterCountWithDisplay implements FilterCount {
+  value: String!
+  count: Int!
+  display: PolicyFilterDisplay!
+}
+
+input PolicyOperation {
+  action: OperationAction!
+  policyId: String = null
+}
+
+enum PolicySource {
+  DESIGNER
+  AS_CODE
+  BUILT_IN
+}
+
+type Provider {
+  name: String!
+  collections(first: Int = null, after: String = null, last: Int = null, before: String = null, page: Int = null): CollectionsConnection!
+  collection(collectionId: String!): Collection!
+  autoAssignment: [AutoAssignment!]!
+  providerId: String!
+  stats: ProviderStats!
+}
+
+type ProviderEdge {
+  node: Provider!
+  cursor: String!
+}
+
+type ProviderStats {
+  totalNeedAttention: Int!
+  totalResources: Int!
+}
+
+type ProvidersConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ProviderEdge!]!
+}
+
+type ProvisionPlan {
+  totalSelectedCollections: Int!
+  totalSelectedResources: Int!
+  scanners: [ProvisionPlanScanner!]!
+}
+
+type ProvisionPlanRuleset {
+  id: String!
+  name: String!
+}
+
+type ProvisionPlanScanner {
+  scannerId: String!
+  scannerName: String!
+  categories: [SecurityCategory!]!
+  totalApplicableCollections: Int!
+  totalApplicableResources: Int!
+  availability: ProvisionPlanScannerAvailability!
+  targets: [ProvisionPlanTarget!]!
+  rulesetRequired: Boolean!
+  rulesets: [ProvisionPlanRuleset!]!
+}
+
+enum ProvisionPlanScannerAvailability {
+  UNKNOWN
+  AVAILABLE
+  MISSING_EXOSCANNER_INSTALLATION
+  MISSING_SBOM_DATA
+  MISSING_SCM_INSTALLATION
+  MISSING_ZTP_INSTALLATION
+  MISSING_CONFIG
+}
+
+enum ProvisionPlanTarget {
+  MAIN_FLOW
+  PR_FLOW
+}
+
+type ProvisionedAnalyzerFilterCount implements FilterCount {
+  value: String!
+  count: Int!
+  display: ProvisionedAnalyzerFilterDisplay!
+}
+
+type ProvisionedAnalyzerFilterDisplay {
+  analyzerId: String!
+  analyzerName: String!
+  rulesetName: String
+}
+
+enum ProvisioningMethod {
+  MANAGED
+  MANUAL
+}
+
+enum ProvisioningState {
+  PROVISIONED
+  UNPROVISIONED
+  IRRELEVANT
+}
+
+type Query {
+  securityPosture(filters: Filters = null): SecurityPosture!
+  provider(providerId: String!, filters: Filters = null): Provider!
+  provisionPlan(assetSelections: [AssetSelection!]!): ProvisionPlan!
+  scannerConfigs: ScannerConfigs!
+  policyAssignmentSummary: PolicyAssignmentSummary!
+  accountAutoAssignment: AccountAutoAssignment!
+}
+
+type Resource implements HasPolicy & HasScanners {
+  policy: Policy!
+  securityCoverage: [SecurityCategoryCoverage!]!
+  scanners: [Scanner!]!
+  resourceId: String!
+  assetType: AssetType!
+  name: String!
+}
+
+type ResourceEdge {
+  node: Resource!
+  cursor: String!
+}
+
+type ResourcesConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ResourceEdge!]!
+}
+
+type Scanner {
+  scannerId: String!
+  error: ScannerError
+  name: String!
+  categories: [SecurityCategory!]!
+  state: ProvisioningState!
+  activity: Activity!
+  provisioningMethod: ProvisioningMethod
+  ruleset: ScannerRuleset
+}
+
+type ScannerConfig {
+  id: String!
+  inUse: Boolean!
+  globalConfigs: [ScannerConfigMapping!]!
+  rulesets: [ScannerConfigRuleset!]!
+}
+
+type ScannerConfigMapping {
+  id: String!
+  value: String
+}
+
+input ScannerConfigMappingInput {
+  id: String!
+  value: String
+}
+
+type ScannerConfigRuleset {
+  id: UUID!
+  name: String!
+  inUse: Boolean!
+  configs: [ScannerConfigMapping!]!
+}
+
+input ScannerConfigRulesetInput {
+  id: UUID
+  name: String!
+  configs: [ScannerConfigMappingInput!]!
+}
+
+input ScannerConfigUpdate {
+  id: String!
+  globalConfigs: [ScannerConfigMappingInput!]
+  rulesets: [ScannerConfigRulesetInput!]
+}
+
+type ScannerConfigs {
+  configs: [ScannerConfig!]!
+}
+
+type ScannerError {
+  message: String!
+}
+
+input ScannerOperation {
+  action: OperationAction!
+  scannerId: String!
+}
+
+type ScannerRuleset {
+  id: UUID!
+  name: String!
+}
+
+enum SecurityCategory {
+  CICD
+  IAC
+  SAST
+  SBOM
+  SCA
+  SCI
+  SECRETS
+  LICENSE
+}
+
+type SecurityCategoryCoverage {
+  category: SecurityCategory!
+  state: ProvisioningState!
+  activity: Activity!
+}
+
+type SecurityPosture {
+  filters: AvailableFilters!
+  account: Account!
+  providers: ProvidersConnection!
+}
+
+enum SelectionType {
+  ASSET
+  FILTER
+}
+
+union UpdateScannerConfigsResult = ScannerConfig | OperationError

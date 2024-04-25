@@ -1,0 +1,11 @@
+# Default genqlient config; for full documentation see:
+# https://github.com/Khan/genqlient/blob/main/docs/genqlient.yaml
+schema: schema.graphql
+operations:
+- genqlient.graphql
+generated: internal/boostsecurity/generated.go
+
+package: boostsecurity
+
+package_bindings:
+- package: github.com/google/uuid

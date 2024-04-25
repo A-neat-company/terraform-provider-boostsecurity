@@ -13,7 +13,7 @@ Manages an order.
 ## Example Usage
 
 ```terraform
-# Manage example order.
+# Manage example fortify.
 resource "hashicups_order" "example" {
   items = [
     {
