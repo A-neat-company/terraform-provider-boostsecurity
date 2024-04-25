@@ -66,7 +66,7 @@ func (p *boostsecurityProvider) Schema(_ context.Context, _ provider.SchemaReque
 }
 
 func (p *boostsecurityProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	tflog.Info(ctx, "Configuring HashiCups client")
+	tflog.Info(ctx, "Configuring Boost client")
 
 	// Retrieve provider data from configuration
 	var config boostsecurityProviderModel
@@ -82,18 +82,18 @@ func (p *boostsecurityProvider) Configure(ctx context.Context, req provider.Conf
 	if config.Host.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("host"),
-			"Unknown HashiCups API Host",
-			"The provider cannot create the HashiCups API client as there is an unknown configuration value for the HashiCups API host. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the HASHICUPS_HOST environment variable.",
+			"Unknown Boost API Host",
+			"The provider cannot create the Boost API client as there is an unknown configuration value for the Boost API host. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the BOOST_HOST environment variable.",
 		)
 	}
 
 	if config.Token.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("username"),
-			"Unknown HashiCups API Username",
-			"The provider cannot create the HashiCups API client as there is an unknown configuration value for the HashiCups API username. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the HASHICUPS_USERNAME environment variable.",
+			path.Root("token"),
+			"Unknown Boost API Token",
+			"The provider cannot create the Boost API client as there is an unknown configuration value for the Boost API token. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the BOOST_TOKEN environment variable.",
 		)
 	}
 
@@ -131,7 +131,7 @@ func (p *boostsecurityProvider) Configure(ctx context.Context, req provider.Conf
 	if token == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
-			"Missing Boost Token",
+			"Missing Boost API Token",
 			"The provider cannot create the Boost API client as there is a missing or empty value for the Boost API token. "+
 				"Set the username value in the configuration or use the BOOST_TOKEN environment variable. "+
 				"If either is already set, ensure the value is not empty.",
