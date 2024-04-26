@@ -51,9 +51,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	//client := boostsecurity.NewClient("https://api.dev.boostsec.io/asset-management/graphql", "5QEhAf9bDvdYy9Z9amU-N-ru0WIeGI1MR-CifoKS49c")
-	//posture, err := client.GetPosture(context.Background())
-	//spew.Dump(err)
-	//spew.Dump(posture.Providers[3].Organizations[0])
 }
